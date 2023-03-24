@@ -22,8 +22,10 @@ jobs:
         dotnet-version: 7.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore -o dist
+    - name: Build Project
+      run: dotnet build ConfigParser2/ConfigParser2.csproj --no-restore -o dist/ConfigParser2
+    - name: Build Tests
+      run: dotnet build TestConfigParser2/TestParser2.csproj --no-restore  
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Archive production artifacts
