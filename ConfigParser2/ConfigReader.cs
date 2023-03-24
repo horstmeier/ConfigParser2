@@ -61,11 +61,11 @@ public class ConfigReader
         return null;
     }
 
-    private ConfigValue? Translate(ConfigValue? value)
+    private ConfigValue Translate(ConfigValue? value)
     {
         if (value is null)
         {
-            return null;
+            return new NullValue();
         }
         
         if (value is StringValue str)
@@ -73,7 +73,7 @@ public class ConfigReader
             var s = TranslateString(str.Value);
             return s != null
                 ? new StringValue(s)
-                : null;
+                : new NullValue();
         }
 
         if (value is ArrayValue arr)
@@ -83,13 +83,13 @@ public class ConfigReader
 
         if (value is ObjectValue obj)
         {
-            return null;
+            return new NullValue();
         }
 
         return value;
     }
-    
-    private string? TranslateString(string value)
+
+    private string TranslateString(string value)
     {
         var regex = new Regex(@"\$\{(?<key>[^}]+)\}");
 

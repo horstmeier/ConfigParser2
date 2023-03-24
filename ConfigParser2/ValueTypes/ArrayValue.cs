@@ -2,4 +2,4 @@
 
 namespace ConfigParser2.ValueTypes;
 
-public record ArrayValue(ImmutableArray<ConfigValue?> Values) : ConfigValue;
+public record ArrayValue(ImmutableArray<ConfigValue> Values) : ConfigValue;
