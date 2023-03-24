@@ -25,7 +25,7 @@ jobs:
     - name: Build Project
       run: dotnet build ConfigParser2/ConfigParser2.csproj --no-restore -o dist/ConfigParser2
     - name: Build Tests
-      run: dotnet build TestConfigParser2/TestParser2.csproj --no-restore  
+      run: dotnet build TestConfigParser2/TestConfigParser2.csproj --no-restore  
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Archive production artifacts
