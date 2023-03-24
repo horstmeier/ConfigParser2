@@ -1,4 +1,5 @@
 using ConfigParser2;
+using ConfigParser2.ValueTypes;
 
 namespace TestConfigParser2;
 
@@ -554,5 +555,67 @@ public class Tests
             var value = DateTime.Parse(sv.Value);
             Assert.That(value, Is.EqualTo(DateTime.UtcNow).Within(5).Seconds);
         }
+    }
+    
+    // Test the GetString method
+    [Test]
+    public void TestGetString()
+    {
+        var data = @"
+        {
+            ""key1"": ""value1""
+        }";
+        var cr = new ConfigReader(data);
+
+        var r = cr.GetString("key1");
+        Assert.That(r, Is.EqualTo("value1"));
+    }
+    
+    // Test that GetString returns an empty string if the key does not exist
+    [Test]
+    public void TestGetStringWithDefault()
+    {
+        var data = @"
+        {
+            ""key1"": ""value1""
+        }";
+        var cr = new ConfigReader(data);
+
+        var r = cr.GetString("key2");
+        Assert.That(r, Is.EqualTo(""));
+    }
+    
+    // Test that GetString works with sections
+    [Test]
+    public void TestGetStringWithSections()
+    {
+        var data = @"
+        {
+            ""key1"": { 
+                ""key2"": ""value1""
+            }
+        }";
+        var cr = new ConfigReader(data);
+
+        var r = cr.GetString("key1", "key2");
+        Assert.That(r, Is.EqualTo("value1"));
+    }
+    
+    // Test that GetString works with two sections
+    [Test]
+    public void TestGetStringWithTwoSections()
+    {
+        var data = @"
+        {
+            ""key1"": { 
+                ""key2"": { 
+                    ""key3"": ""value1""
+                }
+            }
+        }";
+        var cr = new ConfigReader(data);
+
+        var r = cr.GetString("key1", "key2", "key3");
+        Assert.That(r, Is.EqualTo("value1"));
     }
 }

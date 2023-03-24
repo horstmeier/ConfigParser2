@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
 using System.Text.RegularExpressions;
+using ConfigParser2.ValueTypes;
 
 namespace ConfigParser2;
 
@@ -38,6 +39,18 @@ public class ConfigReader
         return Translate(value);
     }
 
+    // The method GetString returns the value of the key as a string.
+    // If the key does not exist, the method returns null.
+    public string GetString(params string[] key)
+    {
+        return key.Length switch
+        {
+            0 => string.Empty,
+            1 => ValueToString(Get(key[0])) ?? string.Empty,
+            _ => GetSection(key[0])?.GetString(key[1..]) ?? string.Empty
+        };
+    }
+    
     public ConfigReader? GetSection(string key)
     {
         if (_values.Peek().Values.TryGetValue(key, out var value) && value is ObjectValue obj)
@@ -145,15 +158,20 @@ public class ConfigReader
                 throw new Exception($"Key {key} not found");
             }
 
-            return v switch
-            {
-                StringValue s => s.Value,
-                LongValue l => l.Value.ToString(),
-                TrueValue => "true",
-                FalseValue => "false",
-                NullValue => null,
-                _ => string.Empty
-            } ?? string.Empty;
+            return ValueToString(v);
         });
+    }
+
+    private static string ValueToString(ConfigValue? v)
+    {
+        return v switch
+        {
+            StringValue s => s.Value,
+            LongValue l => l.Value.ToString(),
+            TrueValue => "true",
+            FalseValue => "false",
+            NullValue => null,
+            _ => string.Empty
+        } ?? string.Empty;
     }
 }
