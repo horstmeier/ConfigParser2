@@ -665,4 +665,74 @@ public class Tests
         Assert.That(r, Is.EqualTo("value2"));
     }
     
+    // Test that you can use a filename as input to the ConfigSection constructor
+    [Test]
+    public void TestFileInput()
+    {
+        var tmpName = Path.GetTempFileName();
+        File.WriteAllText(tmpName, @"
+        {
+            ""key1"": ""value1""
+        }");
+        try
+        {
+            var cr = new ConfigSection(tmpName);
+            var r = cr.GetString("key1");
+            Assert.That(r, Is.EqualTo("value1"));
+        }
+        finally
+        {
+            File.Delete(tmpName);
+        }
+    }
+    
+    // Test that you can use a fileinfo as input to the ConfigSection constructor
+    [Test]
+    public void TestFileInfoInput()
+    {
+        var tmpName = Path.GetTempFileName();
+        File.WriteAllText(tmpName, @"
+        {
+            ""key1"": ""value1""
+        }");
+        try
+        {
+            var cr = new ConfigSection(new FileInfo(tmpName));
+            var r = cr.GetString("key1");
+            Assert.That(r, Is.EqualTo("value1"));
+        }
+        finally
+        {
+            File.Delete(tmpName);
+        }
+    }
+    
+    // Test that we can use a regular expression with file: to match lines
+    [Test]
+    public void TestFileRegex()
+    {
+        var tmpName = Path.GetTempFileName();
+        File.WriteAllText(tmpName, @"
+        {
+            ""key1"": ""value1"",
+            ""key2"": ""value2"",
+            ""key3"": ""y1""
+        }");
+        try
+        {
+            var cr = new ConfigSection($@"
+            {{
+                ""key1"": ""${{file:{tmpName.Replace("\\", "\\\\")}:.*y1}}""
+            }}");
+            var r = cr.GetString("key1");
+            Assert.That(r.Trim(), Does.StartWith("\"key1\""));
+            Assert.That(r.Trim(), Does.Not.EndWith("\n"));
+            Assert.That(r.Trim(), Does.Not.Contain("key3"));
+            Assert.That(r.Trim(), Does.Not.Contain("key2"));
+        }
+        finally
+        {
+            File.Delete(tmpName);
+        }
+    }
 }

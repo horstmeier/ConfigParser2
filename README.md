@@ -109,6 +109,16 @@ You can introduce a file, and then reference it in the other variables:
         "InputDirectory": "${FILE:C:\\Users\\User\\Documents\\Input.txt}"
     }
 
+You can also add a regular expression to the file reference. The regular
+expression will be applied to the file contents, and the first match will be
+used as the value.
+
+    {
+        "OutputDirectory": "${FILE:C:\\Users\\User\\Documents\\Output.txt:.*}",
+        "InputDirectory": "${FILE:C:\\Users\\User\\Documents\\Input.txt:.*}"
+    }
+
+
 ### Current DateTime
 
 With the library, you can reference the current date in your JSON file.

@@ -126,7 +126,29 @@ public partial class ConfigSection
             //}
             if (key.StartsWith("file:", StringComparison.InvariantCultureIgnoreCase))
             {
-                return File.ReadAllText(key.Substring(5));
+                // We also want to support a regular expression for filtering the lines
+                // of the file. The syntax is:
+                // file:filename:regex
+                var splits = key.Split(':');
+                if (splits.Length >= 3)
+                {
+                    var filename = splits[1];
+                    var rex = splits[2];
+                    var lines = File.ReadAllLines(filename);
+                    foreach (var line in lines)
+                    {
+                        if (Regex.IsMatch(line, rex))
+                        {
+                            return line;
+                        }
+                    }
+                    return string.Empty;
+                }
+                if (splits.Length == 2)
+                {
+                    return File.ReadAllText(splits[1]);
+                }
+                
             }
             //if (key.StartsWith("json:"))
             //{
