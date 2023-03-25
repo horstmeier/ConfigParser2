@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using ConfigParser2;
 using ConfigParser2.ValueTypes;
 
@@ -13,12 +14,12 @@ public class Tests
     [Test]
     public void TestSimpleReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": ""value2""  
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
         {
@@ -34,13 +35,13 @@ public class Tests
     [Test]
     public void TestDoubleReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}@${key3}"",
           ""key2"": ""value2"",
           ""key3"": ""value3""  
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
         {
@@ -56,13 +57,13 @@ public class Tests
     [Test]
     public void TestNestedReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": ""value2@${key3}"",
           ""key3"": ""value3""  
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
         {
@@ -78,12 +79,12 @@ public class Tests
     [Test]
     public void TestMissingReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": ""value2@${key3}"" 
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         // Assert that Get throws an exception
         Assert.That(() => cr.Get("key1"), Throws.Exception);
     }
@@ -92,12 +93,12 @@ public class Tests
     [Test]
     public void TestIntegerReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": 2 
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue iv))
         {
@@ -113,12 +114,12 @@ public class Tests
     [Test]
     public void TestTrueReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": true 
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue iv))
         {
@@ -134,12 +135,12 @@ public class Tests
     [Test]
     public void TestFalseReplacement()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": ""${key2}"",
           ""key2"": false 
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.Get("key1");
         if (!(r is StringValue iv))
         {
@@ -155,13 +156,13 @@ public class Tests
     [Test]
     public void TestSection()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": ""value2""
           }
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key1");
         if (r is null)
         {
@@ -185,13 +186,13 @@ public class Tests
     [Test]
     public void TestMissingSection()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": ""value2""
           }
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key3");
         Assert.That(r, Is.Null);
     }
@@ -201,14 +202,14 @@ public class Tests
     [Test]
     public void TestExistingValueInChildSection()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": ""value2""
           },
           ""key2"": ""value3""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key1");
         if (r is null)
         {
@@ -217,7 +218,7 @@ public class Tests
         else
         {
             var r2 = r.Get("key2");
-            if (!(r2 is StringValue sv))
+            if (r2 is not StringValue sv)
             {
                 Assert.Fail("r2 is not a StringValue");
             }
@@ -232,14 +233,14 @@ public class Tests
     [Test]
     public void TestMissingValueInChildSection()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": ""${key3}""
           },
           ""key3"": ""value3""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key1");
         if (r is null)
         {
@@ -248,7 +249,7 @@ public class Tests
         else
         {
             var r2 = r.Get("key2");
-            if (!(r2 is StringValue sv))
+            if (r2 is not StringValue sv)
             {
                 Assert.Fail("r2 is not a StringValue");
             }
@@ -264,7 +265,7 @@ public class Tests
     [Test]
     public void TestExistingValueInGrandChildSection()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": {
@@ -273,7 +274,7 @@ public class Tests
           },
           ""key4"": ""value4""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key1");
         if (r is null)
         {
@@ -289,7 +290,7 @@ public class Tests
             else
             {
                 var r3 = r2.Get("key3");
-                if (!(r3 is StringValue sv))
+                if (r3 is not StringValue sv)
                 {
                     Assert.Fail("r3 is not a StringValue");
                 }
@@ -301,11 +302,11 @@ public class Tests
         }
     }
 
-    // Test that a replacement from two diffenet sections is correctly replaced
+    // Test that a replacement from two different sections is correctly replaced
     [Test]
     public void TestReplacementFromTwoSections()
     {
-        var data = @"
+        const string data = @"
         {
           ""key1"": {
             ""key2"": ""${key3}@${key4}"",
@@ -313,7 +314,7 @@ public class Tests
           },
           ""key4"": ""value4""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
         var r = cr.GetSection("key1");
         if (r is null)
         {
@@ -337,17 +338,17 @@ public class Tests
     [Test]
     public void TestPathReplacement()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""${key3/}value"",
             ""key2"": ""${key4/}value"",
             ""key3"": ""value3"",
             ""key4"": ""value4/""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
-        if (!(r is StringValue sv))
+        if (r is not StringValue sv)
         {
             Assert.Fail("r2 is not a StringValue");
         }
@@ -356,7 +357,7 @@ public class Tests
             Assert.That(sv.Value, Is.EqualTo("value3" + Path.DirectorySeparatorChar + "value"));
         }
         r = cr.Get("key2");
-        if (!(r is StringValue sv2))
+        if (r is not StringValue sv2)
         {
             Assert.Fail("r2 is not a StringValue");
         }
@@ -370,11 +371,11 @@ public class Tests
     [Test]
     public void TestEnvironmentVariableReplacement()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""${env:PATH}""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
@@ -396,7 +397,7 @@ public class Tests
         {
             ""key1"": ""${env:DUMMY:default}""
         }".Replace("DUMMY", name);
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
@@ -419,7 +420,7 @@ public class Tests
             ""key1"": ""${env:DUMMY:default}""
         }".Replace("DUMMY", name);
         Environment.SetEnvironmentVariable(name, "value");
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
@@ -436,7 +437,7 @@ public class Tests
     [Test]
     public void TestReplacementInArray()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": [
                 ""${key2}"",
@@ -445,7 +446,7 @@ public class Tests
             ""key2"": ""value2"",
             ""key3"": ""value3""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
         if (!(r is ArrayValue av))
@@ -466,14 +467,14 @@ public class Tests
     [Test]
     public void TestBase64Decoding()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""${base64:SGVsbG8sIFdvcmxkIQ==}""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
-        if (!(r is StringValue sv))
+        if (r is not StringValue sv)
         {
             Assert.Fail("r2 is not a StringValue");
         }
@@ -495,7 +496,7 @@ public class Tests
             {
                 ""key1"": ""${file:DUMMY}""
             }".Replace("DUMMY", tmpName.Replace("\\", "\\\\")); // Escape backslashes
-            var cr = new ConfigReader(data);
+            var cr = new ConfigSection(data);
 
             var r = cr.Get("key1");
             if (!(r is StringValue sv))
@@ -517,11 +518,11 @@ public class Tests
     [Test]
     public void TestNowReplacement()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""${now}""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
         if (!(r is StringValue sv))
@@ -539,14 +540,14 @@ public class Tests
     [Test]
     public void TestUtcNowReplacement()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""${utcnow}""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
-        if (!(r is StringValue sv))
+        if (r is not StringValue sv)
         {
             Assert.Fail("r2 is not a StringValue");
         }
@@ -561,11 +562,11 @@ public class Tests
     [Test]
     public void TestGetString()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""value1""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.GetString("key1");
         Assert.That(r, Is.EqualTo("value1"));
@@ -575,11 +576,11 @@ public class Tests
     [Test]
     public void TestGetStringWithDefault()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": ""value1""
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.GetString("key2");
         Assert.That(r, Is.EqualTo(""));
@@ -589,13 +590,13 @@ public class Tests
     [Test]
     public void TestGetStringWithSections()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": { 
                 ""key2"": ""value1""
             }
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.GetString("key1", "key2");
         Assert.That(r, Is.EqualTo("value1"));
@@ -605,7 +606,7 @@ public class Tests
     [Test]
     public void TestGetStringWithTwoSections()
     {
-        var data = @"
+        const string data = @"
         {
             ""key1"": { 
                 ""key2"": { 
@@ -613,9 +614,55 @@ public class Tests
                 }
             }
         }";
-        var cr = new ConfigReader(data);
+        var cr = new ConfigSection(data);
 
         var r = cr.GetString("key1", "key2", "key3");
         Assert.That(r, Is.EqualTo("value1"));
     }
+    
+    // Test that global environment settings are correctly replaced
+    [Test]
+    public void TestGlobalEnvironmentVariableReplacement()
+    {
+        const string data = @"
+        {
+            ""key1"": ""value1""
+        }";
+        var dict = ImmutableDictionary<string, string>.Empty
+            .Add("key2", "value2");
+        var cr = new ConfigSection(data, dict);
+        var r = cr.GetString("key2");
+        Assert.That(r, Is.EqualTo("value2"));
+    }
+    
+    // Test that global environment settings are correctly overridden
+    [Test]
+    public void TestGlobalEnvironmentVariableOverride()
+    {
+        const string data = @"
+        {
+            ""key1"": ""value1""
+        }";
+        var dict = ImmutableDictionary<string, string>.Empty
+            .Add("key1", "value2");
+        var cr = new ConfigSection(data, dict);
+        var r = cr.GetString("key1");
+        Assert.That(r, Is.EqualTo("value1"));
+    }
+    
+    // Test that local environment settings are correctly injected
+    [Test]
+    public void TestLocalEnvironmentVariableInjection()
+    {
+        const string data = @"
+        {
+            ""key1"": ""${key2}""
+        }";
+        var dict = ImmutableDictionary<string, string>.Empty
+            .Add("key2", "value2");
+        var cr = new ConfigSection(data, dict);
+        var r = cr.GetString("key1");
+        Assert.That(r, Is.EqualTo("value2"));
+    }
+    
 }

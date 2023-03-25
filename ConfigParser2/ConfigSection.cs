@@ -5,25 +5,39 @@ using ConfigParser2.ValueTypes;
 
 namespace ConfigParser2;
 
-public class ConfigReader
+public partial class ConfigSection
 {
     private readonly ImmutableStack<ObjectValue> _values;
 
-    public ConfigReader(ImmutableStack<ObjectValue> values)
+    public ConfigSection(ImmutableStack<ObjectValue> values)
     {
         _values = values;
     }
 
-    public ConfigReader(ObjectValue value)
+    public ConfigSection(ObjectValue value)
         : this(ImmutableStack.Create(value))
     {
     }
 
-    public ConfigReader(string content) : this(ConfigParser.Create(content))
+    public ConfigSection(string content) : this(ConfigParser.Create(content))
     {
     }
+    
+    public ConfigSection(string content, ImmutableDictionary<string, string> defaults)
+    {
+        var values = ConfigParser.Create(content);
+        var objValues = defaults
+            .Select(it => new KeyValuePair<string,
+                ConfigValue>(it.Key, new StringValue(it.Value)))
+            .ToImmutableDictionary();
+        var d = values.Values.Aggregate(objValues,
+            (current, kvp) =>
+                current.SetItem(kvp.Key, kvp.Value));
 
-    public ConfigReader(FileInfo file) : this(ConfigParser.Create(file))
+        _values = ImmutableStack.Create(new ObjectValue(d));
+    }
+    
+    public ConfigSection(FileInfo file) : this(ConfigParser.Create(file))
     {
     }
 
@@ -33,7 +47,7 @@ public class ConfigReader
         {
             var prev = _values.Pop();
             return recurse && prev.Any() 
-                ? new ConfigReader(prev).Get(key, recurse) // Todo: Remove the need for the new
+                ? new ConfigSection(prev).Get(key, recurse) // Todo: Remove the need for the new
                 : null;
         }
         return Translate(value);
@@ -46,34 +60,32 @@ public class ConfigReader
         return key.Length switch
         {
             0 => string.Empty,
-            1 => ValueToString(Get(key[0])) ?? string.Empty,
+            1 => ValueToString(Get(key[0])),
             _ => GetSection(key[0])?.GetString(key[1..]) ?? string.Empty
         };
     }
     
-    public ConfigReader? GetSection(string key)
+    public ConfigSection? GetSection(string key)
     {
         if (_values.Peek().Values.TryGetValue(key, out var value) && value is ObjectValue obj)
         {
-            return new ConfigReader(_values.Push(obj));
+            return new ConfigSection(_values.Push(obj));
         }
 
         return null;
     }
 
-    private ConfigValue Translate(ConfigValue? value)
+    private ConfigValue? Translate(ConfigValue? value)
     {
         if (value is null)
         {
-            return new NullValue();
+            return null;
         }
         
         if (value is StringValue str)
         {
             var s = TranslateString(str.Value);
-            return s != null
-                ? new StringValue(s)
-                : new NullValue();
+            return new StringValue(s);
         }
 
         if (value is ArrayValue arr)
@@ -81,22 +93,22 @@ public class ConfigReader
             return new ArrayValue(arr.Values.Select(Translate).ToImmutableArray());
         }
 
-        if (value is ObjectValue obj)
+        if (value is ObjectValue)
         {
-            return new NullValue();
+            return null;
         }
 
         return value;
     }
-
+    
     private string TranslateString(string value)
     {
-        var regex = new Regex(@"\$\{(?<key>[^}]+)\}");
+        var regex = KeyRegex();
 
         return regex.Replace(value, m =>
         {
             var key = m.Groups["key"].Value;
-            if (key.StartsWith("env:"))
+            if (key.StartsWith("env:", StringComparison.InvariantCultureIgnoreCase))
             {
                 var subString = key.Substring(4);
                 var splits = subString.Split(":");
@@ -112,23 +124,23 @@ public class ConfigReader
             //{
             //    return RunCommand(key.Substring(4)) ?? string.Empty;
             //}
-            if (key.StartsWith("file:"))
+            if (key.StartsWith("file:", StringComparison.InvariantCultureIgnoreCase))
             {
-                return File.ReadAllText(key.Substring(5)) ?? string.Empty;
+                return File.ReadAllText(key.Substring(5));
             }
             //if (key.StartsWith("json:"))
             //{
             //    return new ConfigReader(key.Substring(5)).Get("value")?.ToString() ?? string.Empty;
             //}
-            if (key.StartsWith("base64:"))
+            if (key.StartsWith("base64:", StringComparison.InvariantCultureIgnoreCase))
             {
-                return Encoding.UTF8.GetString(Convert.FromBase64String(key.Substring(7))) ?? string.Empty;
+                return Encoding.UTF8.GetString(Convert.FromBase64String(key.Substring(7)));
             }
-            if (key.Equals("now"))
+            if (key.Equals("now", StringComparison.InvariantCultureIgnoreCase))
             {
                 return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             }
-            if (key.Equals("utcnow"))
+            if (key.Equals("utcnow", StringComparison.InvariantCultureIgnoreCase))
             {
                 return DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
             }
@@ -174,4 +186,7 @@ public class ConfigReader
             _ => string.Empty
         } ?? string.Empty;
     }
+
+    [GeneratedRegex("\\$\\{(?<key>[^}]+)\\}")]
+    private static partial Regex KeyRegex();
 }
