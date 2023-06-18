@@ -23,7 +23,7 @@ public static class ConfigParser
     {
         if (e.ValueKind != JsonValueKind.Object)
         {
-            throw new System.Exception("Root element must be an object");
+            throw new Exception("Root element must be an object");
         }
 
         return new ObjectValue(e.EnumerateObject()

@@ -9,12 +9,12 @@ public partial class ConfigSection
 {
     private readonly ImmutableStack<ObjectValue> _values;
 
-    public ConfigSection(ImmutableStack<ObjectValue> values)
+    private ConfigSection(ImmutableStack<ObjectValue> values)
     {
         _values = values;
     }
 
-    public ConfigSection(ObjectValue value)
+    private ConfigSection(ObjectValue value)
         : this(ImmutableStack.Create(value))
     {
     }

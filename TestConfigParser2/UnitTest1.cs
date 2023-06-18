@@ -423,7 +423,7 @@ public class Tests
         var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
-        if (!(r is StringValue sv))
+        if (r is not StringValue sv)
         {
             Assert.Fail("r2 is not a StringValue");
         }
@@ -449,7 +449,7 @@ public class Tests
         var cr = new ConfigSection(data);
 
         var r = cr.Get("key1");
-        if (!(r is ArrayValue av))
+        if (r is not ArrayValue av)
         {
             Assert.Fail("r2 is not an ArrayValue");
         }
@@ -686,7 +686,7 @@ public class Tests
         }
     }
     
-    // Test that you can use a fileinfo as input to the ConfigSection constructor
+    // Test that you can use a FileInfo as input to the ConfigSection constructor
     [Test]
     public void TestFileInfoInput()
     {
